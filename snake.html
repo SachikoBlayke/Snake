@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Змейка - Мультипрофиль с ускорением</title>
+  <style>
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+/*Задаём глобальные параметры*/
+body {
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  position: relative;
+}
+/*Контейнер для игры и меню*/
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+/*Меню с рекордом и выбором игрока*/
+.menu {
+  background: #333;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 5px;
+  font-size: 18px;
+  border: 1px solid white;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 500px;
+  max-width: 90vw;
+}
+.player-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #555;
+  padding-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.player-selector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.player-btn {
+  background: #444;
+  color: white;
+  border: 1px solid #666;
+  padding: 8px 15px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+  min-width: 100px;
+}
+.player-btn:hover {
+  background: #555;
+}
+.player-btn.active {
+  background: #ffaa00;
+  color: black;
+  border-color: #ffaa00;
+  font-weight: bold;
+}
+.add-player-btn {
+  background: #00aa00;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+.add-player-btn:hover {
+  background: #00cc00;
+  transform: scale(1.05);
+}
+.delete-player-btn {
+  background: #aa0000;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 5px;
+}
+.delete-player-btn:hover {
+  background: #cc0000;
+}
+/* Стили для ника */
+.nickname-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.nickname-display {
+  color: #ffaa00;
+  font-weight: bold;
+  font-size: 20px;
+}
+.edit-nickname {
+  background: #444;
+  color: white;
+  border: 1px solid #666;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.edit-nickname:hover {
+  background: #555;
+}
+.stats {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.stat-item span {
+  color: #ffaa00;
+  font-weight: bold;
+  font-size: 24px;
+}
+/* Индикатор скорости */
+.speed-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #444;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+.speed-bar {
+  width: 50px;
+  height: 10px;
+  background: #222;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.speed-bar-fill {
+  height: 100%;
+  background: #ffaa00;
+  width: 66%;
+  transition: width 0.3s;
+}
+.speed-level {
+  color: #ffaa00;
+  font-weight: bold;
+}
+.controls-info {
+  display: flex;
+  justify-content: space-around;
+  color: #888;
+  font-size: 14px;
+  border-top: 1px solid #555;
+  padding-top: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.control-key {
+  background: #222;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid #555;
+}
+/*Делаем границу вокруг игрового поля*/
+canvas {
+  border: 1px solid white;
+}
+/* Кнопка лидерборда */
+.leaderboard-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: #ffaa00;
+  color: black;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(255, 170, 0, 0.3);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.leaderboard-button:hover {
+  background: #ffbb22;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 170, 0, 0.4);
+}
+.leaderboard-button svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+/* Выпадающий список лидерборда */
+.leaderboard-dropdown {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  background: #333;
+  border: 1px solid #ffaa00;
+  border-radius: 10px;
+  width: 300px;
+  max-width: 90vw;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 999;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: none;
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.leaderboard-dropdown.show {
+  display: block;
+}
+.leaderboard-header {
+  background: #444;
+  padding: 15px;
+  border-radius: 10px 10px 0 0;
+  border-bottom: 2px solid #ffaa00;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.leaderboard-header h3 {
+  margin: 0;
+  color: #ffaa00;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.leaderboard-header h3 svg {
+  width: 24px;
+  height: 24px;
+  fill: #ffaa00;
+}
+.leaderboard-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: #888;
+  font-size: 14px;
+}
+.leaderboard-stats span {
+  color: #ffaa00;
+  font-weight: bold;
+}
+.leaderboard-list {
+  padding: 10px;
+}
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 5px;
+  background: #3a3a3a;
+  border-radius: 5px;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.leaderboard-item:hover {
+  background: #444;
+  transform: translateX(5px);
+}
+.leaderboard-item.top-1 {
+  border-left-color: gold;
+  background: linear-gradient(90deg, #4a4a00, #3a3a3a);
+}
+.leaderboard-item.top-2 {
+  border-left-color: silver;
+}
+.leaderboard-item.top-3 {
+  border-left-color: #cd7f32; /* bronze */
+}
+.leaderboard-rank {
+  font-size: 18px;
+  font-weight: bold;
+  width: 40px;
+  text-align: center;
+}
+.leaderboard-rank.top-1 {
+  color: gold;
+}
+.leaderboard-rank.top-2 {
+  color: silver;
+}
+.leaderboard-rank.top-3 {
+  color: #cd7f32;
+}
+.leaderboard-nickname {
+  flex: 1;
+  font-size: 16px;
+  margin-left: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leaderboard-score {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffaa00;
+  margin-right: 10px;
+}
+.leaderboard-medal {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.leaderboard-footer {
+  padding: 10px;
+  text-align: center;
+  color: #888;
+  font-size: 12px;
+  border-top: 1px solid #555;
+}
+.current-player-highlight {
+  background: #4a4a4a !important;
+  border: 1px solid #ffaa00;
+}
+/* Модальные окна */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+.modal-content {
+  background: #333;
+  padding: 30px;
+  border-radius: 10px;
+  border: 1px solid white;
+  text-align: center;
+  color: white;
+  max-width: 90%;
+}
+.modal-input {
+  background: #222;
+  color: white;
+  border: 1px solid #555;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 18px;
+  margin: 20px 0;
+  width: 250px;
+  max-width: 100%;
+}
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.modal-btn {
+  background: #ffaa00;
+  color: black;
+  border: none;
+  padding: 10px 30px;
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.modal-btn:hover {
+  background: #ffbb22;
+}
+.modal-btn.cancel {
+  background: #666;
+  color: white;
+}
+.modal-btn.cancel:hover {
+  background: #777;
+}
+.modal-btn.delete {
+  background: #aa0000;
+  color: white;
+}
+.modal-btn.delete:hover {
+  background: #cc0000;
+}
+.player-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 20px 0;
+  border: 1px solid #555;
+  border-radius: 5px;
+}
+.player-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #555;
+}
+.player-list-item:last-child {
+  border-bottom: none;
+}
+.player-list-item:hover {
+  background: #444;
+}
+/* Индикатор сохранения */
+.save-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #2a5a2a;
+  color: #ccc;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 1001;
+  border: 1px solid #3a6a3a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+.save-indicator.show {
+  opacity: 0.8;
+}
+  </style>
+</head>
+
+<body>
+  <!-- Индикатор сохранения -->
+  <div class="save-indicator" id="save-indicator">💾 Сохранено</div>
+
+  <!-- Кнопка лидерборда -->
+  <button class="leaderboard-button" id="leaderboard-btn">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/>
+    </svg>
+    Лидерборд
+  </button>
+
+  <!-- Выпадающий список лидерборда -->
+  <div class="leaderboard-dropdown" id="leaderboard-dropdown">
+    <div class="leaderboard-header">
+      <h3>
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/>
+        </svg>
+        Топ игроков
+      </h3>
+      <div class="leaderboard-stats">
+        <span>Всего игроков: <span id="total-players">0</span></span>
+        <span>Рекорд: <span id="global-record">0</span></span>
+      </div>
+    </div>
+    <div class="leaderboard-list" id="leaderboard-list">
+      <!-- Здесь будут элементы лидерборда -->
+    </div>
+    <div class="leaderboard-footer">
+      * Ваш ник подсвечен жёлтым
+    </div>
+  </div>
+
+  <!-- Контейнер с игрой -->
+  <div class="game-container">
+    <!-- Меню с выбором игрока и рекордами -->
+    <div class="menu">
+      <div class="player-section">
+        <span>👥 Игроки:</span>
+        <div class="player-selector" id="player-buttons-container">
+          <!-- Кнопки игроков будут создаваться динамически -->
+        </div>
+        <button class="add-player-btn" id="add-player-btn">➕ Добавить</button>
+      </div>
+      
+      <!-- Секция с ником -->
+      <div class="nickname-section">
+        <span>🏷️ Текущий ник:</span>
+        <span class="nickname-display" id="current-nickname">Игрок 1</span>
+        <button class="edit-nickname" id="edit-nickname-btn">✏️ Сменить ник</button>
+      </div>
+      
+      <div class="stats">
+        <div class="stat-item">
+          📊 Рекорд: <span id="record">0</span>
+        </div>
+        <div class="stat-item">
+          🍎 Текущий счёт: <span id="current-score">0</span>
+        </div>
+        <!-- Индикатор скорости -->
+        <div class="speed-indicator">
+          <span>⚡</span>
+          <div class="speed-bar">
+            <div class="speed-bar-fill" id="speed-bar-fill" style="width: 66%"></div>
+          </div>
+          <span class="speed-level" id="speed-level">x1</span>
+        </div>
+      </div>
+      
+      <div class="controls-info">
+        <span><span class="control-key">←</span> <span class="control-key">↑</span> <span class="control-key">→</span> <span class="control-key">↓</span> — движение</span>
+        <span><span class="control-key">Del</span> — удалить игрока</span>
+        <span><span class="control-key">L</span> — лидерборд</span>
+        <span><span class="control-key">Ctrl+S</span> — сохранение</span>
+      </div>
+    </div>
+    
+    <!-- Игровое поле -->
+    <canvas id="game" width="400" height="400"></canvas>
+  </div>
+
+  <!-- Модальное окно для ввода ника -->
+  <div class="modal" id="nickname-modal">
+    <div class="modal-content">
+      <h2>Введите ник для <span id="modal-player-name">игрока</span></h2>
+      <input type="text" class="modal-input" id="nickname-input" maxlength="15" placeholder="Введите ник...">
+      <div class="modal-buttons">
+        <button class="modal-btn" id="save-nickname-btn">Сохранить</button>
+        <button class="modal-btn cancel" id="cancel-nickname-btn">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно для удаления игрока -->
+  <div class="modal" id="delete-modal">
+    <div class="modal-content">
+      <h2>Удалить игрока?</h2>
+      <p>Вы уверены, что хотите удалить <span id="delete-player-name">Игрока 1</span>?</p>
+      <p class="stat-item" style="justify-content: center;">Рекорд: <span id="delete-player-record">0</span></p>
+      <div class="modal-buttons">
+        <button class="modal-btn delete" id="confirm-delete-btn">Удалить</button>
+        <button class="modal-btn cancel" id="cancel-delete-btn">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно для выбора игрока на удаление -->
+  <div class="modal" id="select-delete-modal">
+    <div class="modal-content">
+      <h2>Выберите игрока для удаления</h2>
+      <div class="player-list" id="delete-player-list">
+        <!-- Список игроков будет создаваться динамически -->
+      </div>
+      <button class="modal-btn cancel" id="close-delete-modal">Закрыть</button>
+    </div>
+  </div>
+
+<script>
+// ==================== КОНСТАНТЫ И НАСТРОЙКИ ====================
+var SAVE_VERSION = '1.0';
+var AUTO_SAVE_DELAY = 1000;
+var BASE_SPEED = 4; // Базовая скорость (количество пропускаемых кадров)
+
+// ==================== КОНСТАНТЫ СКОРОСТИ ====================
+var SPEED_THRESHOLD_1 = 25;  // Первый порог (25 очков)
+var SPEED_THRESHOLD_2 = 40;  // Второй порог (40 очков)
+var SPEED_MULTIPLIER_1 = 1.25; // Множитель после 25 очков
+var SPEED_MULTIPLIER_2 = 1.5;  // Множитель после 40 очков
+
+// ==================== ОСНОВНЫЕ ПЕРЕМЕННЫЕ ====================
+var canvas = document.getElementById('game');
+var context = canvas.getContext('2d');
+var grid = 16;
+var count = 0;
+var score = 0;
+var currentPlayerId = 1;
+var nextPlayerId = 3;
+var currentSpeedMultiplier = 1.0; // Текущий множитель скорости
+
+// Объект для хранения данных игроков
+var players = {};
+
+// Таймер для автосохранения
+var autoSaveTimer = null;
+var hasChanges = false;
+
+// ==================== ПОЛУЧАЕМ ЭЛЕМЕНТЫ ИНТЕРФЕЙСА ====================
+var playerButtonsContainer = document.getElementById('player-buttons-container');
+var recordElement = document.getElementById('record');
+var currentScoreElement = document.getElementById('current-score');
+var currentNicknameElement = document.getElementById('current-nickname');
+var addPlayerBtn = document.getElementById('add-player-btn');
+var editNicknameBtn = document.getElementById('edit-nickname-btn');
+var saveIndicator = document.getElementById('save-indicator');
+var speedBarFill = document.getElementById('speed-bar-fill');
+var speedLevelElement = document.getElementById('speed-level');
+
+// Элементы лидерборда
+var leaderboardBtn = document.getElementById('leaderboard-btn');
+var leaderboardDropdown = document.getElementById('leaderboard-dropdown');
+var leaderboardList = document.getElementById('leaderboard-list');
+var totalPlayersSpan = document.getElementById('total-players');
+var globalRecordSpan = document.getElementById('global-record');
+
+// Модальные окна
+var nicknameModal = document.getElementById('nickname-modal');
+var deleteModal = document.getElementById('delete-modal');
+var selectDeleteModal = document.getElementById('select-delete-modal');
+var modalPlayerName = document.getElementById('modal-player-name');
+var nicknameInput = document.getElementById('nickname-input');
+var saveNicknameBtn = document.getElementById('save-nickname-btn');
+var cancelNicknameBtn = document.getElementById('cancel-nickname-btn');
+var deletePlayerName = document.getElementById('delete-player-name');
+var deletePlayerRecord = document.getElementById('delete-player-record');
+var confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+var cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+var deletePlayerList = document.getElementById('delete-player-list');
+var closeDeleteModal = document.getElementById('close-delete-modal');
+
+// ID игрока для удаления
+var playerToDelete = null;
+
+// ==================== СИСТЕМА СКОРОСТИ ====================
+
+// Обновить скорость на основе счёта
+function updateSpeed() {
+  var newMultiplier = 1.0;
+  
+  // Определяем множитель на основе счёта
+  if (score >= SPEED_THRESHOLD_2) {
+    newMultiplier = SPEED_MULTIPLIER_2;
+  } else if (score >= SPEED_THRESHOLD_1) {
+    newMultiplier = SPEED_MULTIPLIER_1;
+  }
+  
+  // Если множитель изменился
+  if (newMultiplier !== currentSpeedMultiplier) {
+    currentSpeedMultiplier = newMultiplier;
+    
+    // Обновляем индикатор скорости
+    updateSpeedIndicator();
+  }
+}
+
+// Обновить индикатор скорости
+function updateSpeedIndicator() {
+  if (currentSpeedMultiplier > 1.5) {
+    speedBarFill.style.width = '100%';
+    speedLevelElement.textContent = 'x' + currentSpeedMultiplier.toFixed(2);
+    speedBarFill.style.background = '#ff5500';
+  } 
+  else if (currentSpeedMultiplier > 1.0) {
+    // Для скорости 1.25 - заполняем полоску на 83% (между 66% и 100%)
+    var fillPercentage = 66 + ((currentSpeedMultiplier - 1.0) / 0.5) * 34;
+    speedBarFill.style.width = fillPercentage + '%';
+    speedLevelElement.textContent = 'x' + currentSpeedMultiplier.toFixed(2);
+    speedBarFill.style.background = '#ffaa00';
+  } 
+  else {
+    speedBarFill.style.width = '66%';
+    speedLevelElement.textContent = 'x1';
+    speedBarFill.style.background = '#ffaa00';
+  }
+}
+
+// Получить текущую скорость (сколько кадров пропускать)
+function getCurrentFrameSkip() {
+  return Math.floor(BASE_SPEED / currentSpeedMultiplier);
+}
+
+// ==================== СИСТЕМА СОХРАНЕНИЯ ====================
+
+// Показать индикатор сохранения
+function showSaveIndicator() {
+  saveIndicator.classList.add('show');
+  setTimeout(function() {
+    saveIndicator.classList.remove('show');
+  }, 1500);
+}
+
+// Запланировать автосохранение
+function scheduleAutoSave() {
+  hasChanges = true;
+  
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer);
+  }
+  
+  autoSaveTimer = setTimeout(function() {
+    if (hasChanges) {
+      saveAllPlayersData();
+      hasChanges = false;
+      autoSaveTimer = null;
+    }
+  }, AUTO_SAVE_DELAY);
+}
+
+// Сохранить все данные
+function saveAllPlayersData() {
+  var saveData = {
+    version: SAVE_VERSION,
+    timestamp: Date.now(),
+    players: players,
+    nextPlayerId: nextPlayerId,
+    currentPlayerId: currentPlayerId
+  };
+  
+  localStorage.setItem('snake_game_data', JSON.stringify(saveData));
+  showSaveIndicator();
+  updateLeaderboard();
+}
+
+// Загрузить данные
+function loadPlayersData() {
+  var savedData = localStorage.getItem('snake_game_data');
+  
+  if (savedData) {
+    try {
+      var data = JSON.parse(savedData);
+      
+      if (data.version === SAVE_VERSION) {
+        players = data.players || {};
+        nextPlayerId = data.nextPlayerId || 3;
+        currentPlayerId = data.currentPlayerId || 1;
+      } else {
+        players = data.players || {};
+        nextPlayerId = data.nextPlayerId || 3;
+        currentPlayerId = data.currentPlayerId || 1;
+      }
+    } catch (e) {
+      console.error('Ошибка загрузки данных:', e);
+      createDefaultPlayers();
+    }
+  } else {
+    createDefaultPlayers();
+  }
+  
+  updateAllDisplays();
+  updateLeaderboard();
+}
+
+// Создать игроков по умолчанию
+function createDefaultPlayers() {
+  players = {
+    1: {
+      nickname: 'Игрок 1',
+      record: 0
+    },
+    2: {
+      nickname: 'Игрок 2',
+      record: 0
+    }
+  };
+  nextPlayerId = 3;
+  currentPlayerId = 1;
+}
+
+// ==================== ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ====================
+
+// Обновить все отображения
+function updateAllDisplays() {
+  playerButtonsContainer.innerHTML = '';
+  
+  var sortedIds = Object.keys(players).sort(function(a, b) {
+    return parseInt(a) - parseInt(b);
+  });
+  
+  for (var i = 0; i < sortedIds.length; i++) {
+    var id = sortedIds[i];
+    var player = players[id];
+    var button = document.createElement('button');
+    button.className = 'player-btn';
+    if (parseInt(id) === currentPlayerId) {
+      button.classList.add('active');
+    }
+    button.textContent = player.nickname;
+    button.setAttribute('data-player-id', id);
+    button.addEventListener('click', function() {
+      switchPlayer(parseInt(this.getAttribute('data-player-id')));
+    });
+    playerButtonsContainer.appendChild(button);
+  }
+  
+  updateDisplayForCurrentPlayer();
+}
+
+// Обновить отображение для текущего игрока
+function updateDisplayForCurrentPlayer() {
+  var currentPlayer = players[currentPlayerId];
+  if (currentPlayer) {
+    currentNicknameElement.textContent = currentPlayer.nickname;
+    recordElement.textContent = currentPlayer.record;
+  }
+  currentScoreElement.textContent = score;
+  updateSpeed(); // Обновляем скорость при смене игрока
+}
+
+// Обновление лидерборда
+function updateLeaderboard() {
+  var playersArray = [];
+  for (var id in players) {
+    playersArray.push({
+      id: parseInt(id),
+      nickname: players[id].nickname,
+      record: players[id].record
+    });
+  }
+  
+  playersArray.sort(function(a, b) {
+    return b.record - a.record;
+  });
+  
+  totalPlayersSpan.textContent = playersArray.length;
+  if (playersArray.length > 0) {
+    globalRecordSpan.textContent = playersArray[0].record;
+  }
+  
+  leaderboardList.innerHTML = '';
+  var topPlayers = playersArray.slice(0, 10);
+  
+  for (var i = 0; i < topPlayers.length; i++) {
+    var player = topPlayers[i];
+    var rank = i + 1;
+    
+    var item = document.createElement('div');
+    item.className = 'leaderboard-item';
+    
+    if (rank === 1) item.classList.add('top-1');
+    else if (rank === 2) item.classList.add('top-2');
+    else if (rank === 3) item.classList.add('top-3');
+    
+    if (player.id === currentPlayerId) {
+      item.classList.add('current-player-highlight');
+    }
+    
+    var rankSpan = document.createElement('span');
+    rankSpan.className = 'leaderboard-rank';
+    if (rank === 1) rankSpan.classList.add('top-1');
+    else if (rank === 2) rankSpan.classList.add('top-2');
+    else if (rank === 3) rankSpan.classList.add('top-3');
+    rankSpan.textContent = rank + '.';
+    
+    var medalSpan = document.createElement('span');
+    medalSpan.className = 'leaderboard-medal';
+    if (rank === 1) medalSpan.textContent = '🥇';
+    else if (rank === 2) medalSpan.textContent = '🥈';
+    else if (rank === 3) medalSpan.textContent = '🥉';
+    else medalSpan.textContent = '   ';
+    
+    var nicknameSpan = document.createElement('span');
+    nicknameSpan.className = 'leaderboard-nickname';
+    nicknameSpan.textContent = player.nickname;
+    
+    var scoreSpan = document.createElement('span');
+    scoreSpan.className = 'leaderboard-score';
+    scoreSpan.textContent = player.record;
+    
+    item.appendChild(rankSpan);
+    item.appendChild(medalSpan);
+    item.appendChild(nicknameSpan);
+    item.appendChild(scoreSpan);
+    
+    leaderboardList.appendChild(item);
+  }
+  
+  var currentPlayerInTop = topPlayers.some(function(p) { return p.id === currentPlayerId; });
+  if (!currentPlayerInTop && players[currentPlayerId]) {
+    var currentPlayer = players[currentPlayerId];
+    var separator = document.createElement('div');
+    separator.style.textAlign = 'center';
+    separator.style.padding = '10px';
+    separator.style.color = '#666';
+    separator.textContent = '...';
+    leaderboardList.appendChild(separator);
+    
+    var item = document.createElement('div');
+    item.className = 'leaderboard-item current-player-highlight';
+    
+    var rankSpan = document.createElement('span');
+    rankSpan.className = 'leaderboard-rank';
+    rankSpan.textContent = '?';
+    
+    var nicknameSpan = document.createElement('span');
+    nicknameSpan.className = 'leaderboard-nickname';
+    nicknameSpan.textContent = currentPlayer.nickname;
+    
+    var scoreSpan = document.createElement('span');
+    scoreSpan.className = 'leaderboard-score';
+    scoreSpan.textContent = currentPlayer.record;
+    
+    item.appendChild(rankSpan);
+    item.appendChild(nicknameSpan);
+    item.appendChild(scoreSpan);
+    
+    leaderboardList.appendChild(item);
+  }
+}
+
+// ==================== ИГРОВАЯ ЛОГИКА ====================
+
+// Переключение игрока
+function switchPlayer(playerId) {
+  if (playerId === currentPlayerId || !players[playerId]) return;
+  
+  if (hasChanges) {
+    saveAllPlayersData();
+  }
+  
+  currentPlayerId = playerId;
+  resetGame();
+  updateAllDisplays();
+  updateLeaderboard();
+}
+
+// Сброс игры
+function resetGame() {
+  snake.x = 160;
+  snake.y = 160;
+  snake.cells = [];
+  snake.maxCells = 4;
+  snake.dx = grid;
+  snake.dy = 0;
+  score = 0;
+  currentSpeedMultiplier = 1.0; // Сбрасываем множитель скорости
+  speedBarFill.style.width = '66%';
+  speedLevelElement.textContent = 'x1';
+  speedBarFill.style.background = '#ffaa00';
+  apple.x = getRandomInt(0, 25) * grid;
+  apple.y = getRandomInt(0, 25) * grid;
+  currentScoreElement.textContent = score;
+}
+
+// Проверка и обновление рекорда
+function checkAndUpdateRecord() {
+  var currentPlayer = players[currentPlayerId];
+  if (score > currentPlayer.record) {
+    currentPlayer.record = score;
+    recordElement.textContent = currentPlayer.record;
+    scheduleAutoSave();
+    updateLeaderboard();
+  }
+}
+
+// Добавление нового игрока
+function addNewPlayer() {
+  var newPlayerId = nextPlayerId++;
+  players[newPlayerId] = {
+    nickname: 'Игрок ' + newPlayerId,
+    record: 0
+  };
+  
+  scheduleAutoSave();
+  updateAllDisplays();
+  updateLeaderboard();
+  switchPlayer(newPlayerId);
+}
+
+// Открыть модальное окно для смены ника
+function openNicknameModal() {
+  modalPlayerName.textContent = players[currentPlayerId].nickname;
+  nicknameInput.value = players[currentPlayerId].nickname;
+  nicknameModal.style.display = 'flex';
+  nicknameInput.focus();
+}
+
+// Сохранить новый ник
+function saveNickname() {
+  var newNickname = nicknameInput.value.trim();
+  if (newNickname === '') {
+    alert('Ник не может быть пустым!');
+    return;
+  }
+  if (newNickname.length > 15) {
+    alert('Ник слишком длинный! Максимум 15 символов.');
+    return;
+  }
+  
+  players[currentPlayerId].nickname = newNickname;
+  updateAllDisplays();
+  updateLeaderboard();
+  scheduleAutoSave();
+  nicknameModal.style.display = 'none';
+}
+
+// Открыть окно выбора игрока для удаления
+function openDeletePlayerModal() {
+  deletePlayerList.innerHTML = '';
+  
+  for (var id in players) {
+    var player = players[id];
+    var item = document.createElement('div');
+    item.className = 'player-list-item';
+    item.innerHTML = `
+      <span>${player.nickname}</span>
+      <span style="color: #ffaa00;">Рекорд: ${player.record}</span>
+      <button class="delete-player-btn" data-player-id="${id}">✖ Удалить</button>
+    `;
+    
+    var deleteBtn = item.querySelector('.delete-player-btn');
+    deleteBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var id = parseInt(this.getAttribute('data-player-id'));
+      openConfirmDeleteModal(id);
+    });
+    
+    deletePlayerList.appendChild(item);
+  }
+  
+  selectDeleteModal.style.display = 'flex';
+}
+
+// Открыть подтверждение удаления
+function openConfirmDeleteModal(playerId) {
+  playerToDelete = playerId;
+  deletePlayerName.textContent = players[playerId].nickname;
+  deletePlayerRecord.textContent = players[playerId].record;
+  
+  selectDeleteModal.style.display = 'none';
+  deleteModal.style.display = 'flex';
+}
+
+// Удалить игрока
+function deletePlayer() {
+  if (playerToDelete === null) return;
+  
+  if (Object.keys(players).length <= 1) {
+    alert('Нельзя удалить последнего игрока!');
+    deleteModal.style.display = 'none';
+    playerToDelete = null;
+    return;
+  }
+  
+  delete players[playerToDelete];
+  
+  if (playerToDelete === currentPlayerId) {
+    var firstPlayerId = parseInt(Object.keys(players)[0]);
+    currentPlayerId = firstPlayerId;
+  }
+  
+  scheduleAutoSave();
+  updateAllDisplays();
+  updateLeaderboard();
+  resetGame();
+  
+  deleteModal.style.display = 'none';
+  playerToDelete = null;
+}
+
+// Переключение лидерборда
+function toggleLeaderboard() {
+  leaderboardDropdown.classList.toggle('show');
+}
+
+// Закрыть лидерборд при клике вне его
+document.addEventListener('click', function(e) {
+  if (!leaderboardBtn.contains(e.target) && !leaderboardDropdown.contains(e.target)) {
+    leaderboardDropdown.classList.remove('show');
+  }
+});
+
+// ==================== ИГРОВОЙ ЦИКЛ ====================
+
+// Змейка
+var snake = {
+  x: 160,
+  y: 160,
+  dx: grid,
+  dy: 0,
+  cells: [],
+  maxCells: 4
+};
+
+// Яблоко
+var apple = {
+  x: 320,
+  y: 320
+};
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+// Игровой цикл
+function loop() {
+  requestAnimationFrame(loop);
+  
+  var frameSkip = getCurrentFrameSkip(); // Получаем текущую скорость
+  
+  if (++count < frameSkip) {
+    return;
+  }
+  
+  count = 0;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Обновляем отображение текущего счёта
+  currentScoreElement.textContent = score;
+  
+  // Двигаем змейку
+  snake.x += snake.dx;
+  snake.y += snake.dy;
+  
+  // Телепортация через стены
+  if (snake.x < 0) {
+    snake.x = canvas.width - grid;
+  }
+  else if (snake.x >= canvas.width) {
+    snake.x = 0;
+  }
+  
+  if (snake.y < 0) {
+    snake.y = canvas.height - grid;
+  }
+  else if (snake.y >= canvas.height) {
+    snake.y = 0;
+  }
+  
+  // Добавляем новую голову
+  snake.cells.unshift({ x: snake.x, y: snake.y });
+  
+  // Удаляем хвост если нужно
+  if (snake.cells.length > snake.maxCells) {
+    snake.cells.pop();
+  }
+  
+  // Рисуем яблоко
+  context.fillStyle = 'red';
+  context.fillRect(apple.x, apple.y, grid - 1, grid - 1);
+  
+  // Рисуем змейку
+  context.fillStyle = 'green';
+  
+  snake.cells.forEach(function (cell, index) {
+    context.fillRect(cell.x, cell.y, grid - 1, grid - 1);
+    
+    // Проверка съедания яблока
+    if (cell.x === apple.x && cell.y === apple.y) {
+      snake.maxCells++;
+      score++;
+      updateSpeed(); // Обновляем скорость при увеличении счёта
+      checkAndUpdateRecord();
+      apple.x = getRandomInt(0, 25) * grid;
+      apple.y = getRandomInt(0, 25) * grid;
+    }
+    
+    // Проверка столкновения с собой
+    for (var i = index + 1; i < snake.cells.length; i++) {
+      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+        resetGame();
+      }
+    }
+  });
+}
+
+// ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+
+addPlayerBtn.addEventListener('click', addNewPlayer);
+editNicknameBtn.addEventListener('click', openNicknameModal);
+leaderboardBtn.addEventListener('click', toggleLeaderboard);
+
+// Управление с клавиатуры
+document.addEventListener('keydown', function (e) {
+  // Движение
+  if (e.which === 37 && snake.dx === 0) {
+    snake.dx = -grid;
+    snake.dy = 0;
+  }
+  else if (e.which === 38 && snake.dy === 0) {
+    snake.dy = -grid;
+    snake.dx = 0;
+  }
+  else if (e.which === 39 && snake.dx === 0) {
+    snake.dx = grid;
+    snake.dy = 0;
+  }
+  else if (e.which === 40 && snake.dy === 0) {
+    snake.dy = grid;
+    snake.dx = 0;
+  }
+  // Удаление игрока (Delete)
+  else if (e.which === 46) {
+    openDeletePlayerModal();
+  }
+  // Лидерборд (L)
+  else if (e.which === 76) {
+    toggleLeaderboard();
+  }
+  // Принудительное сохранение (Ctrl+S)
+  else if (e.which === 83 && e.ctrlKey) {
+    e.preventDefault();
+    saveAllPlayersData();
+  }
+});
+
+// Обработчики модальных окон
+saveNicknameBtn.addEventListener('click', saveNickname);
+
+cancelNicknameBtn.addEventListener('click', function() {
+  nicknameModal.style.display = 'none';
+});
+
+confirmDeleteBtn.addEventListener('click', deletePlayer);
+
+cancelDeleteBtn.addEventListener('click', function() {
+  deleteModal.style.display = 'none';
+  playerToDelete = null;
+});
+
+closeDeleteModal.addEventListener('click', function() {
+  selectDeleteModal.style.display = 'none';
+});
+
+// Закрытие модальных окон по клику вне их
+nicknameModal.addEventListener('click', function(e) {
+  if (e.target === nicknameModal) {
+    nicknameModal.style.display = 'none';
+  }
+});
+
+deleteModal.addEventListener('click', function(e) {
+  if (e.target === deleteModal) {
+    deleteModal.style.display = 'none';
+    playerToDelete = null;
+  }
+});
+
+selectDeleteModal.addEventListener('click', function(e) {
+  if (e.target === selectDeleteModal) {
+    selectDeleteModal.style.display = 'none';
+  }
+});
+
+// Сохранение ника по Enter
+nicknameInput.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    saveNickname();
+  }
+});
+
+// Сохраняем данные при закрытии страницы
+window.addEventListener('beforeunload', function() {
+  if (hasChanges) {
+    saveAllPlayersData();
+  }
+});
+
+// ==================== ЗАПУСК ====================
+
+loadPlayersData();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
